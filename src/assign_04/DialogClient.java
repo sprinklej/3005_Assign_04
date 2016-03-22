@@ -11,5 +11,6 @@ public interface DialogClient {
 	
 	public void dialogFinished(operation anOperation);
 	public void classDialogFinished(operation anOperation);
+	public void joinDialogFinished();
 	public void dialogCancelled();
 }

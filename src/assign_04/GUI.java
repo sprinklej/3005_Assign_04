@@ -1,5 +1,6 @@
 package assign_04;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,6 +19,8 @@ import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 public class GUI extends JFrame implements DialogClient {
 	
@@ -36,9 +39,11 @@ public class GUI extends JFrame implements DialogClient {
 	GUI thisFrame;
 	
 	// Here are the component listeners
+	ListSelectionListener classListSelectionListener;
 	ActionListener addClientListener;
 	ActionListener addStaffListener;
 	ActionListener addClassListener;
+	ActionListener joinClassListener;
 	ActionListener addRefreshListener;
 	MouseListener  doubleClickClientsListener;
 	MouseListener  doubleClickStaffListener;
@@ -76,6 +81,15 @@ public class GUI extends JFrame implements DialogClient {
 		add(view = new ListPanel());
 		
 		// listeners
+		// Add a listener to allow selection of buddies from the list
+		classListSelectionListener = new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent event) {
+				if (!event.getValueIsAdjusting()) { 
+					selectClass();
+				}
+			}
+		};
+					
 		// add a client button listener
 		addClientListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -94,6 +108,12 @@ public class GUI extends JFrame implements DialogClient {
 		addClassListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				addClass();
+			}
+		};
+		
+		joinClassListener = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				joinClass();
 			}
 		};
 		
@@ -152,7 +172,7 @@ public class GUI extends JFrame implements DialogClient {
 		
 		
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setSize(1000,600);
+		setSize(825,600);
 		
 		// Start off with everything updated properly to reflect the model state
 		update();
@@ -160,9 +180,11 @@ public class GUI extends JFrame implements DialogClient {
 	
 	// Enable all listeners
 	private void enableListeners() {
+		view.getClassList().addListSelectionListener(classListSelectionListener);
 		view.getAddClientButton().addActionListener(addClientListener);
 		view.getAddStaffButton().addActionListener(addStaffListener);
 		view.getAddClassButton().addActionListener(addClassListener);
+		view.getAddJoinClassButton().addActionListener(joinClassListener);
 		view.getAddRefreshButton().addActionListener(addRefreshListener);
 		view.getClientList().addMouseListener(doubleClickClientsListener);
 		view.getStaffList().addMouseListener(doubleClickStaffListener);
@@ -171,13 +193,20 @@ public class GUI extends JFrame implements DialogClient {
 	
 	// Disable all listeners
 	private void disableListeners() {
+		view.getClassList().removeListSelectionListener(classListSelectionListener);
 		view.getAddClientButton().removeActionListener(addClientListener);
 		view.getAddStaffButton().removeActionListener(addStaffListener);
 		view.getAddClassButton().removeActionListener(addClassListener);
+		view.getAddJoinClassButton().removeActionListener(joinClassListener);
 		view.getAddRefreshButton().removeActionListener(addRefreshListener);
 		view.getClientList().removeMouseListener(doubleClickClientsListener);
 		view.getStaffList().removeMouseListener(doubleClickStaffListener);
 		view.getClassList().removeMouseListener(doubleClickClassesListener);
+	}
+	
+	private void selectClass() {
+		selectedClass = (Classes)(view.getClassList().getSelectedValue());
+		System.out.println("Class Selected: " + selectedClass);
 	}
 	
 	// add a new client
@@ -198,6 +227,7 @@ public class GUI extends JFrame implements DialogClient {
 		update();
 	}
 	
+	// add a new class
 	private void addClass() {
 		System.out.println("Clicked on: add class");
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -208,7 +238,21 @@ public class GUI extends JFrame implements DialogClient {
 		update();
 	}
 	
-	
+	// have a client join a class
+	private void joinClass() {
+		System.out.println("Clicked on: join class");
+		System.out.println("Current class Selected: " + selectedClass);
+		
+		if(selectedClass == null) {
+			System.out.println("no class selected");
+			return;
+		}
+		
+		selectedUser = new Users(-1, "", "", "", "", "", "");
+		JoinClassDetailsDialog dialog = new JoinClassDetailsDialog(thisFrame, thisFrame, "Joina a class", true, selectedUser);
+		dialog.setVisible(true);
+		updateLists();
+	}
 	
 	// Update the visible lists
 	private void updateLists() {
@@ -292,6 +336,8 @@ public class GUI extends JFrame implements DialogClient {
 				if ((selectedUser.getName().equals("")) || (selectedUser.getPhone().equals("")) || (selectedUser.getEmail().equals(""))
 						|| (selectedUser.getAddress().equals("")) || (selectedUser.getInstructorType().equals(""))) {
 					System.out.println("Empty field: user not updated");
+					update();
+					return;
 				}
 				 // new staffer
 				if(selectedUser.getID() == -1) {
@@ -319,6 +365,8 @@ public class GUI extends JFrame implements DialogClient {
 				if ((selectedUser.getName().equals("")) || (selectedUser.getPhone().equals("")) || (selectedUser.getEmail().equals(""))
 						|| (selectedUser.getAddress().equals("")) || (selectedUser.getGender().equals(""))) {
 					System.out.println("Empty field: user not updated");
+					update();
+					return;
 				}
 				// new client
 				if(selectedUser.getID() == -1) {
@@ -379,6 +427,8 @@ public class GUI extends JFrame implements DialogClient {
 			if ((selectedClass.getStaffEmail().equals("")) || (selectedClass.getClassName().equals("")) || (selectedClass.getCurrentSize() == -1)
 					|| (selectedClass.getMaxSize() == -1) || (selectedClass.getClassType().equals("")) || (selectedClass.getDateTime().equals(""))) {
 				System.out.println("Empty field: user not updated");
+				update();
+				return;
 			}
 		
 			// new class
@@ -431,11 +481,19 @@ public class GUI extends JFrame implements DialogClient {
 	}
 	
 	@Override
+	public void joinDialogFinished() {
+		String sqlString;
+		
+		sqlString = "SELECT clientID FROM clients WHERE cEmail = '" + selectedUser.getEmail() + "';";
+		System.out.println(sqlString);
+		update();
+	}
+	
+	
+	@Override
 	public void dialogCancelled() {
 		selectedUser = null;    // User currently selected in the GUI list
 		selectedClass = null;
 		update();
 	}
-
-
 }
