@@ -232,17 +232,8 @@ public class UserDetailsDialog extends JDialog {
         layout.setConstraints(cancelButton, lc);
    		getContentPane().add(cancelButton); 
 	}
+
 	
-	/*
-	private JTextField	name;
-	private JTextField	phone;
-	private JTextField	email;
-	private JTextField	address;
-	private JTextField	gender;
-	private JTextField	referralSource;
-	private JTextField	instructorType;
-	
-	 */
 	private void updateButtonClicked() {
 
 		theUser.setName(name.getText());

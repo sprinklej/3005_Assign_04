@@ -212,7 +212,24 @@ public class ClassDetailsDialog extends JDialog {
 	}
 	
 	private void updateButtonClicked() {
-
+		
+		int cSize = -1;
+		if (!(currentSize.getText().equals(""))) {
+			cSize = Integer.parseInt(currentSize.getText());
+		}
+		int mSize = -1;
+		if (!(maxSize.getText().equals(""))) {
+			mSize = Integer.parseInt(maxSize.getText());
+		}
+		
+		
+		theClass.setStaffEmail(instructorEmail.getText());
+		theClass.setClassName(className.getText());
+		theClass.setCurrentSize(cSize);
+		theClass.setMaxSize(mSize);
+		theClass.setClassType(classType.getText());
+		theClass.setDateTime(dateTime.getText());
+		
 		//Inform the dialog client that the dialog finished
 		if (theDialogClient != null) {
 			theDialogClient.classDialogFinished(DialogClient.operation.UPDATE);

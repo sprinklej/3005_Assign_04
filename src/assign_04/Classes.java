@@ -55,9 +55,31 @@ public class Classes {
 		return dateTime;
 	}
 
+	// setters	
+	public void setStaffEmail(String se) {
+		staffEmail = se;
+	}
 	
-	//15, 0, 0, 15, 16
-	// className, currentsize, maxsize, classType, dateTime
+	public void setClassName(String cn) {
+		className = cn;
+	}
+	
+	public void setCurrentSize(int cs) {
+		currentSize = cs;
+	}
+	
+	public void setMaxSize(int ms) {
+		maxSize = ms;
+	}
+	
+	public void setClassType(String ct) {
+		classType = ct;
+	}
+	
+	public void setDateTime(String dt) {
+		dateTime = dt;
+	}
+	
 	public String toString() {				
 		String rtrnString = "";
 		String keyIndent = "";

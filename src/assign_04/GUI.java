@@ -338,7 +338,6 @@ public class GUI extends JFrame implements DialogClient {
 							+ "', referralSource = '" + selectedUser.getReferralSource().replaceAll("'", "''") 
 							+ "' WHERE clientID = " + selectedUser.getID() + ";";
 				}
-				System.out.println(sqlString);
 				try {
 					stat.executeUpdate(sqlString);
 				} catch (SQLException e) {
@@ -363,7 +362,7 @@ public class GUI extends JFrame implements DialogClient {
 
 // TODO - delete from classes_clients
 // TODO - decrement the class count
-// TODO - if instructor remove all the classes that they teach
+// TODO - if instructor - remove all the classes that they teach
 			
 			selectedUser = null; 
 		} 
@@ -376,10 +375,35 @@ public class GUI extends JFrame implements DialogClient {
 		
 		if(requestedOperation == DialogClient.operation.UPDATE) { // update a class
 			System.out.println("UPDATE");
-			
-			
-// TODO			
-			
+
+			if ((selectedClass.getStaffEmail().equals("")) || (selectedClass.getClassName().equals("")) || (selectedClass.getCurrentSize() == -1)
+					|| (selectedClass.getMaxSize() == -1) || (selectedClass.getClassType().equals("")) || (selectedClass.getDateTime().equals(""))) {
+				System.out.println("Empty field: user not updated");
+			}
+		
+			// new class
+			if(selectedClass.getID() == -1) {
+				sqlString = "INSERT INTO classes(sEmail, className, currentSize, maxSize, classType, dt) VALUES ('"
+						+ selectedClass.getStaffEmail().replaceAll("'", "''") + "', '"
+						+ selectedClass.getClassName().replaceAll("'", "''") + "', "
+						+ selectedClass.getCurrentSize() + ", "
+						+ selectedClass.getMaxSize() + ", '"
+						+ selectedClass.getClassType().replaceAll("'", "''") + "', '"
+						+ selectedClass.getDateTime().replaceAll("'", "''") + "');";
+			} else { // update class
+				sqlString = "UPDATE classes SET sEmail = '" + selectedClass.getStaffEmail().replaceAll("'", "''")
+						+ "', className = '" + selectedClass.getClassName().replaceAll("'", "''")
+						+ "', currentSize = " + selectedClass.getCurrentSize()
+						+ ", maxSize = " + selectedClass.getMaxSize()
+						+ ", classType = '" + selectedClass.getClassType().replaceAll("'", "''")
+						+ "', dt = '" + selectedClass.getDateTime().replaceAll("'", "''")
+						+ "' WHERE classID = " + selectedClass.getID() + ";";
+			}
+			try {
+				stat.executeUpdate(sqlString);
+			} catch (SQLException e) {
+				System.out.println("Failed to update/add: " + selectedClass);
+			}
 			
 			selectedClass = null;
 		} else if(requestedOperation == DialogClient.operation.DELETE) { // delete a class
