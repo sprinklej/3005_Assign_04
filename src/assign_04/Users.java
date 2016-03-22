@@ -2,6 +2,7 @@ package assign_04;
 
 //class represents a user from the DB (client or staff)
 public class Users {
+	int ID = -1;
 	String name = null;
 	String phone = null;
 	String email = null;
@@ -18,7 +19,8 @@ public class Users {
 	boolean staffTF = false;
 	
 	// constructor - CLIENTS
-	public Users(String name, String phone, String email, String address, String gender, String referralSource) {
+	public Users(int ID, String name, String phone, String email, String address, String gender, String referralSource) {
+		this.ID = ID;
 		this.name = name;
 		this.phone = phone;
 		this.email = email;
@@ -29,7 +31,8 @@ public class Users {
 	}
 	
 	// constructor - STAFF
-	public Users(String name, String phone, String email, String address, String instructorType) {
+	public Users(int ID, String name, String phone, String email, String address, String instructorType) {
+		this.ID = ID;
 		this.name = name;
 		this.phone = phone;
 		this.email = email;
@@ -39,44 +42,87 @@ public class Users {
 	}
 	
 	// constructor - GENERAL
-	public Users(String name, String phone, String email) {
+	public Users(String name, String email) {
 		
 	}
 	
 	// getters
-	boolean getStaffTF() {
+	public boolean getStaffTF() {
 		return staffTF;
 	}
 	
-	String getName() {
+	public int getID() {
+		return ID;
+	}
+	
+	public String getName() {
 		return name;
 	}
 	
-	String getPhone() {
+	public String getPhone() {
 		return phone;
 	}
 	
-	String getEmail() {
+	public String getEmail() {
 		return email;
 	}
 	
-	String getAddress() {
+	public String getAddress() {
 		return address;
 	}
 	
-	String getInstructorType() {
+	public String getInstructorType() {
 		return instructorType;
 	}
 	
-	String getGender() {
+	public String getGender() {
 		return gender;
 	}
 	
-	String getReferralSource() {
+	public String getReferralSource() {
 		return referralSource;
 	}
 	
-	public String toString() {
-		return "Hello";
+	// setters
+	public void setStaffTF(boolean flag) {
+		staffTF = flag;
+	}
+		
+	public void setName(String nm) {
+		name = nm;
+	}
+	
+	public void setPhone(String ph) {
+		phone = ph;
+	}
+	
+	public void setEmail(String em) {
+		email = em;
+	}
+	
+	public void setAddress(String addr) {
+		address = addr;
+	}
+	
+	public void setInstructorType(String iType) {
+		instructorType = iType;
+	}
+	
+	public void setGender(String gndr) {
+		gender = gndr;
+	}
+	
+	public void setReferralSource(String rs) {
+		referralSource = rs;
+	}
+	
+	public String toString() {		
+		String keyIndent = "";
+		int maxNameDigits = 20;
+		for (int i=0; i< maxNameDigits - (""+name).length(); i++ ) {  //(""+name) - prevents null erro
+			keyIndent = keyIndent + " ";
+		}
+		
+		return "" + name + keyIndent + " " + email; 
 	}
 }

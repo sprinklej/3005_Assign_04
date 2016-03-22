@@ -21,7 +21,16 @@ public class Classes {
 		this.dateTime = dateTime;
 	}
 	
+	// constructor - GENERAL
+	public Classes(String className, int currentSize, int maxSize, String classType, String dateTime) {
+		
+	}
+	
 	// getters
+	public int getID() {
+		return classID;
+	}
+	
 	public String getStaffEmail() {
 		return staffEmail;
 	}
@@ -30,7 +39,7 @@ public class Classes {
 		return className;
 	}
 	
-	public int getcurrentSize() {
+	public int getCurrentSize() {
 		return currentSize;
 	}
 	
@@ -44,5 +53,31 @@ public class Classes {
 	
 	public String getDateTime() {
 		return dateTime;
+	}
+
+	
+	//15, 0, 0, 15, 16
+	// className, currentsize, maxsize, classType, dateTime
+	public String toString() {				
+		String rtrnString = "";
+		String keyIndent = "";
+		
+		// class name
+		int maxNameDigits = 15;
+		for (int i = 0; i < maxNameDigits - (""+className).length(); i++) {
+			keyIndent = keyIndent + " ";
+		}
+		rtrnString = rtrnString + className + keyIndent + " ";
+
+		//class type 
+		int maxTypeDigits = 12;
+		keyIndent = "";
+		for (int i = 0; i < maxTypeDigits - (""+classType).length(); i++) {
+			keyIndent = keyIndent + " ";
+		}
+		rtrnString = rtrnString + classType + keyIndent + " " + dateTime;
+		//rtrnString = rtrnString + classType;
+		
+		return rtrnString;
 	}
 }

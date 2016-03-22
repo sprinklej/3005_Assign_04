@@ -25,42 +25,39 @@ public class Main {
 			Statement stat = database.createStatement();
 			
 			// get the clients
-			String sqlQueryString = "select * from clients;";
+			String sqlQueryString = "select * from clients ORDER BY name ASC;";
             System.out.println(sqlQueryString);
             
             ArrayList<Users> clients = new ArrayList<Users>();
             
             ResultSet rs = stat.executeQuery(sqlQueryString);
 	        while (rs.next()) {
-	        	// (String name, String phone, String email, String address, String gender, String referralSource)
-	        	Users user = new Users(rs.getString("name"), rs.getString("phone"), rs.getString("cEmail"), rs.getString("address"), rs.getString("gender"), rs.getString("referralSource")); 
+	        	Users user = new Users(rs.getInt("clientID"), rs.getString("name"), rs.getString("phone"), rs.getString("cEmail"), rs.getString("address"), rs.getString("gender"), rs.getString("referralSource")); 
 	        	clients.add(user);
 	        }
 	        rs.close(); //close the query result table
             
             // get the staff
-            sqlQueryString = "select * from staff;";
+            sqlQueryString = "select * from staff ORDER BY name ASC;";
             System.out.println(sqlQueryString);
             
             ArrayList<Users> staff = new ArrayList<Users>();
             
             rs = stat.executeQuery(sqlQueryString);
 	        while (rs.next()) {
-	        	// (String name, String phone, String email, String address, String instructorType)
-	        	Users user = new Users(rs.getString("name"), rs.getString("phone"), rs.getString("sEmail"), rs.getString("address"), rs.getString("instructorType")); 
+	        	Users user = new Users(rs.getInt("staffID"), rs.getString("name"), rs.getString("phone"), rs.getString("sEmail"), rs.getString("address"), rs.getString("instructorType")); 
 	        	staff.add(user);
 	        }
 	        rs.close(); //close the query result table
             
             // get the classes
-            sqlQueryString = "select * from classes;";
+            sqlQueryString = "select * from classes ORDER BY dt ASC;";
             System.out.println(sqlQueryString);
             
             ArrayList<Classes> classes = new ArrayList<Classes>();
             
             rs = stat.executeQuery(sqlQueryString);
 	        while (rs.next()) {
-	        	// (String staffEmail, String className, int currentSize, int maxSize, String classType, String dateTime)
 	        	Classes cls = new Classes(rs.getInt("classID"), rs.getString("sEmail"), rs.getString("className"), rs.getInt("currentSize"), rs.getInt("maxSize"), rs.getString("classType"), rs.getString("dt"));
 	        	classes.add(cls);
 	        }

@@ -9,6 +9,7 @@ public interface DialogClient {
 	
 	public static enum operation {UPDATE, DELETE};
 	
-	//public void dialogFinished(operation anOperation);
-	//public void dialogCancelled();
+	public void dialogFinished(operation anOperation);
+	public void classDialogFinished(operation anOperation);
+	public void dialogCancelled();
 }
