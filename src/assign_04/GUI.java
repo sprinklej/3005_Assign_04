@@ -40,6 +40,8 @@ public class GUI extends JFrame implements DialogClient {
 	
 	// Here are the component listeners
 	ListSelectionListener classListSelectionListener;
+	ListSelectionListener clientListSelectionListener;
+	ListSelectionListener staffListSelectionListener;
 	ActionListener addClientListener;
 	ActionListener addStaffListener;
 	ActionListener addClassListener;
@@ -81,7 +83,7 @@ public class GUI extends JFrame implements DialogClient {
 		add(view = new ListPanel());
 		
 		// listeners
-		// Add a listener to allow selection of buddies from the list
+		// Add a listener to allow selection of buddies from the classes list
 		classListSelectionListener = new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {
 				if (!event.getValueIsAdjusting()) { 
@@ -89,7 +91,25 @@ public class GUI extends JFrame implements DialogClient {
 				}
 			}
 		};
-					
+		
+		// Add a listener to allow selection of buddies from the client list
+		clientListSelectionListener = new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent event) {
+				if (!event.getValueIsAdjusting()) { 
+					selectclient();
+				}
+			}
+		};
+				
+		// Add a listener to allow selection of buddies from the staff list
+		staffListSelectionListener = new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent event) {
+				if (!event.getValueIsAdjusting()) { 
+					selectStaff();
+				}
+			}
+		};
+		
 		// add a client button listener
 		addClientListener = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -181,6 +201,8 @@ public class GUI extends JFrame implements DialogClient {
 	// Enable all listeners
 	private void enableListeners() {
 		view.getClassList().addListSelectionListener(classListSelectionListener);
+		view.getClientList().addListSelectionListener(clientListSelectionListener);
+		view.getStaffList().addListSelectionListener(staffListSelectionListener);
 		view.getAddClientButton().addActionListener(addClientListener);
 		view.getAddStaffButton().addActionListener(addStaffListener);
 		view.getAddClassButton().addActionListener(addClassListener);
@@ -194,6 +216,8 @@ public class GUI extends JFrame implements DialogClient {
 	// Disable all listeners
 	private void disableListeners() {
 		view.getClassList().removeListSelectionListener(classListSelectionListener);
+		view.getClientList().removeListSelectionListener(clientListSelectionListener);
+		view.getStaffList().removeListSelectionListener(staffListSelectionListener);
 		view.getAddClientButton().removeActionListener(addClientListener);
 		view.getAddStaffButton().removeActionListener(addStaffListener);
 		view.getAddClassButton().removeActionListener(addClassListener);
@@ -204,9 +228,24 @@ public class GUI extends JFrame implements DialogClient {
 		view.getClassList().removeMouseListener(doubleClickClassesListener);
 	}
 	
+	// single click on class list
 	private void selectClass() {
 		selectedClass = (Classes)(view.getClassList().getSelectedValue());
 		System.out.println("Class Selected: " + selectedClass);
+	}
+	
+	// single click on client list
+	private void selectclient() {
+		selectedUser = (Users)(view.getClientList().getSelectedValue());
+		System.out.println("Client Selected: " + selectedUser);
+		search();
+	}
+	
+	// single click on staff list
+	private void selectStaff() {
+		selectedUser = (Users)(view.getStaffList().getSelectedValue());
+		System.out.println("Staff Selected: " + selectedUser);
+		search();
 	}
 	
 	// add a new client
@@ -317,6 +356,65 @@ public class GUI extends JFrame implements DialogClient {
 	}
 		
 	
+	private void search() { 
+		String sqlString;
+		
+		if (selectedUser == null) {
+			return;
+		}
+		
+		if (selectedUser.getStaffTF() == true) { // staff
+			System.out.println("Search for STAFF classes");
+			sqlString = "SELECT * FROM classes WHERE sEmail = '"
+					+ selectedUser.getEmail() + "' ORDER BY dt ASC;";
+			try {
+				classList.clear();
+				ResultSet rs = stat.executeQuery(sqlString);
+				while (rs.next()) {
+					Classes cls = new Classes(rs.getInt("classID"), rs.getString("sEmail"), rs.getString("className"), rs.getInt("currentSize"), rs.getInt("maxSize"), rs.getString("classType"), rs.getString("dt"));
+					classList.add(cls);
+				}
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else { // client
+			System.out.println("Search for CLIENT classes");
+			ArrayList<Integer> classIDList = new ArrayList<Integer>();
+			sqlString = "SELECT * FROM classes_clients WHERE clientID = "
+					+ selectedUser.getID() + ";";
+			try {
+				classList.clear();
+				ResultSet rs = stat.executeQuery(sqlString);
+				while (rs.next()) {
+					classIDList.add(rs.getInt("classID"));
+				}
+				rs.close();
+				for (int i = 0; i < classIDList.size(); i++) {
+					sqlString = "SELECT * FROM classes WHERE classID = " 
+							+ classIDList.get(i) + ";";
+					System.out.println(sqlString);
+					rs = stat.executeQuery(sqlString);
+					Classes cls = new Classes(rs.getInt("classID"), rs.getString("sEmail"), rs.getString("className"), rs.getInt("currentSize"), rs.getInt("maxSize"), rs.getString("classType"), rs.getString("dt"));
+					classList.add(cls);
+					rs.close();
+				}
+				/*
+				
+				ResultSet classRS = stat.executeQuery(sqlString);
+		Classes cls = new Classes(classRS.getInt("classID"), classRS.getString("sEmail"), classRS.getString("className"), classRS.getInt("currentSize"), classRS.getInt("maxSize"), classRS.getString("classType"), classRS.getString("dt"));
+		classList.add(cls);
+		classRS.close();*/
+				
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}	
+		}
+		
+		updateLists();
+	}
+	
 	// Update the components
 	private void update() {
 		disableListeners();
@@ -397,20 +495,84 @@ public class GUI extends JFrame implements DialogClient {
 		} else if(requestedOperation == DialogClient.operation.DELETE) { // delete a user
 			System.out.println("DELETE: " + selectedUser);
 			
-			if (selectedUser.getStaffTF() == true) { // delete a staff
+			if (selectedUser.getStaffTF() == true) { // delete a staff member
 				sqlString = "DELETE FROM staff WHERE staffID = " + selectedUser.getID() + ";";
+				try {
+					stat.executeUpdate(sqlString);
+				} catch (SQLException e) {
+					System.out.println("Failed to delete: " + selectedUser);
+				}
+			
+				// remove the class from the client_classes table
+				ArrayList<Integer> classIDList = new ArrayList<Integer>();
+				sqlString = "SELECT DISTINCT classes_clients.classID FROM classes, classes_clients WHERE sEmail = '"
+						+ selectedUser.getEmail() + "' AND classes.classID = classes_clients.classID";
+				try { 
+					ResultSet rs = stat.executeQuery(sqlString);
+					while (rs.next()) {
+						classIDList.add(rs.getInt("classID"));
+					}
+					rs.close();
+					
+					for (int i = 0; i < classIDList.size(); i++) {
+						sqlString = "DELETE FROM classes_clients WHERE classID = " + classIDList.get(i) + ";";
+						stat.executeUpdate(sqlString);
+					}
+				} catch (SQLException e) {
+					System.out.println("Failed to delete from classes_clients");
+				}
+				
+				// remove any classes that the staff member was teaching
+				sqlString = "DELETE FROM classes WHERE sEmail = '" + selectedUser.getEmail() + "';";
+				try {
+					stat.executeUpdate(sqlString);
+				} catch (SQLException e) {
+					System.out.println("Failed to delete: " + selectedUser);
+				}
 			} else { // delete a client
 				sqlString = "DELETE FROM clients WHERE clientID = " + selectedUser.getID() + ";";
+				try {
+					stat.executeUpdate(sqlString);
+				} catch (SQLException e) {
+					System.out.println("Failed to delete: " + selectedUser);
+				}
+				
+				// decrement the currentSize of any class the user is signed up to
+				ArrayList<Integer> classIDList = new ArrayList<Integer>();
+				// get the list of classes to decrement the currnentSize of
+				sqlString = "SELECT * FROM classes_clients WHERE clientID = " + selectedUser.getID() + ";";
+				try { 
+					ResultSet rs = stat.executeQuery(sqlString);
+					while (rs.next()) {
+						classIDList.add(rs.getInt("classID"));
+					}
+					rs.close();
+					
+					// get each class to decrement the currnetSize of
+					for (int i = 0; i < classIDList.size(); i++) {
+						sqlString = "SELECT * FROM classes WHERE classID = " + classIDList.get(i) + ";"; 
+						//System.out.println(sqlString);
+						rs = stat.executeQuery(sqlString); 
+						Classes cls = new Classes(rs.getInt("classID"), rs.getString("sEmail"), rs.getString("className"), rs.getInt("currentSize"), rs.getInt("maxSize"), rs.getString("classType"), rs.getString("dt"));
+						rs.close();
+						
+						int crSize = cls.getCurrentSize();
+						crSize--;
+						sqlString = "UPDATE classes SET currentSize = " + crSize 
+								+ " WHERE classID = " + cls.getID() + ";";
+						//System.out.println(sqlString);		
+						stat.executeUpdate(sqlString);
+					}
+					
+					// remove the client from any classes that they were signed up for
+					sqlString = "DELETE FROM classes_clients WHERE clientID = " + selectedUser.getID() + ";";
+					//System.out.println(sqlString);
+					stat.executeUpdate(sqlString);
+					
+				} catch (SQLException e) {
+					System.out.println("Failed to delete from classes_clients");
+				}
 			}
-			try {
-				stat.executeUpdate(sqlString);
-			} catch (SQLException e) {
-				System.out.println("Failed to delete: " + selectedUser);
-			}
-
-// TODO - delete from classes_clients
-// TODO - decrement the class count
-// TODO - if instructor - remove all the classes that they teach
 			
 			selectedUser = null; 
 		} 
@@ -483,9 +645,50 @@ public class GUI extends JFrame implements DialogClient {
 	@Override
 	public void joinDialogFinished() {
 		String sqlString;
+		int crntSize;
+		int maxSize;
 		
-		sqlString = "SELECT clientID FROM clients WHERE cEmail = '" + selectedUser.getEmail() + "';";
-		System.out.println(sqlString);
+		try {
+			// see if the class is full
+			sqlString = "SELECT * FROM classes WHERE classID = " + selectedClass.getID() + ";";
+			
+			ResultSet rs = stat.executeQuery(sqlString);
+			crntSize = rs.getInt("currentSize");
+			maxSize = rs.getInt("maxSize");
+			if (!(crntSize < maxSize)) {
+				System.out.println("Class is full - cant join");
+				selectedUser = null;
+				selectedClass = null;
+				return;
+			}
+			rs.close(); //close the query result table
+			
+			// join the class
+			sqlString = "SELECT * FROM clients WHERE cEmail = '" + selectedUser.getEmail() + "';";
+			rs = stat.executeQuery(sqlString);
+			selectedUser = new Users(rs.getInt("clientID"), rs.getString("name"), rs.getString("phone"), rs.getString("cEmail"), rs.getString("address"), rs.getString("gender"), rs.getString("referralSource"));
+			rs.close(); //close the query result table
+			
+			if (selectedUser.getID() == -1) { // failed to find a user
+				selectedUser = null;
+				selectedClass = null;
+				return;
+			}
+			
+			sqlString = "INSERT INTO classes_clients(classID, clientID) VALUES ("
+					+ selectedClass.getID() + ", " + selectedUser.getID() + ");";
+			stat.executeUpdate(sqlString);
+			
+			// update the current classes currentSize
+			crntSize++;
+			sqlString = "UPDATE classes SET currentSize = " + crntSize + " WHERE classID = " + selectedClass.getID() + ";";
+			stat.executeUpdate(sqlString);
+		} catch (SQLException e) {
+			System.out.println("Failed to join the class");
+		}
+		
+		selectedUser = null;
+		selectedClass = null;
 		update();
 	}
 	
