@@ -1,9 +1,9 @@
 --DROP THE DATABASE TABLES
 --=======================
-DROP TABLE staff;
-DROP TABLE clients;
-DROP TABLE classes;
-DROP TABLE classes_clients;
+DROP TABLE IF EXISTS staff;
+DROP TABLE IF EXISTS clients;
+DROP TABLE IF EXISTS classes;
+DROP TABLE IF EXISTS classes_clients;
 
 
 --CREATE DATABASE TABLES
