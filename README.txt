@@ -2,7 +2,7 @@ Joel Sprinkle
 100960023
 COMP 3005
 Assignment 04
-
+Question 02
 
 ----About----
 -This is a Java Swing project, that is connected to a database.
